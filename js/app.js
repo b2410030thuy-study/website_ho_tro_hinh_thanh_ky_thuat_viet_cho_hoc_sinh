@@ -279,8 +279,8 @@ renderLessonDetail = function() {
 
 // Hàm sinh bài tập tự động dùng Google Gemini API (gemini-1.5-flash)
 async function generateExerciseWithGemini(lessonName) {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "" || GEMINI_API_KEY.includes("AQ.Ab8RN6IlpXp1o7xszYWFJPUJcKuZnwB7QTeIuUB_bnOzq9R4aQ")) {
-        alert("⚠️ Vui lòng mở file js/app.js và dán GEMINI_API_KEY của bạn vào!");
+    if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "" || GEMINI_API_KEY.includes("DienKeyCuaBanVaoDay")) {
+        alert("⚠️ Vui lòng dán API Key của bạn vào dòng const GEMINI_API_KEY ở đầu file js/app.js!");
         return;
     }
     
