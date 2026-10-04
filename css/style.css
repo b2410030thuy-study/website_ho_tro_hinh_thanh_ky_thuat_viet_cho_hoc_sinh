@@ -544,3 +544,31 @@ body {
     font-weight: bold;
     min-height: 27px;
 }
+/* ===================================================
+   TÍCH HỢP FONT CHỮ CHUẨN TIẾNG VIỆT TIỂU HỌC
+   =================================================== */
+
+/* 1. Khai báo Font-face chuẩn Tiểu học */
+@font-face {
+    font-family: 'FontTieuHocChuan';
+    /* Thay đổi đường dẫn 'fonts/...' tới đúng file font bạn có trong dự án */
+    src: url('fonts/font-tieu-hoc.woff2') format('woff2'),
+         url('fonts/font-tieu-hoc.woff') format('woff'),
+         url('fonts/font-tieu-hoc.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 2. Các class định phạm vi (Scope) áp dụng Font Tiểu học */
+/* Áp dụng cho bất kỳ phần tử nào có class .font-tieu-hoc hoặc .tap-viet-text */
+.font-tieu-hoc,
+.tap-viet-text {
+    font-family: 'FontTieuHocChuan', Arial, sans-serif !important;
+}
+
+/* Tùy chỉnh thêm thuộc tính hiển thị tập viết (nếu cần thiết) */
+.tap-viet-text {
+    line-height: 1.8;
+    letter-spacing: 0.5px;
+}
