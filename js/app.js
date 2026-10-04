@@ -241,7 +241,7 @@ function saveProfile() {
    ========================================================================== */
 
 // ⚠️ ĐIỀN API KEY GEMINI CỦA BẠN VÀO GIỮA HAO DẤU NGOẶC KÉP
-const GEMINI_API_KEY = "AQ.Ab8RN6K9tbTMbeQdqnjQfW10Ecooy1DrkD4nBw5PzcjGqmtWgA";
+const GEMINI_API_KEY = "AQ.Ab8RN6IlpXp1o7xszYWFJPUJcKuZnwB7QTeIuUB_bnOzq9R4aQ";
 
 // Nối Khung AI Gemini & In Ô ly vào Hàm renderLessonDetail
 const originalRenderLessonDetail = renderLessonDetail;
@@ -279,8 +279,7 @@ renderLessonDetail = function() {
 
 // Hàm sinh bài tập tự động dùng Google Gemini API (gemini-1.5-flash)
 async function generateExerciseWithGemini(lessonName) {
-    // Chỉ kiểm tra xem đã nhập Key chưa
-    if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
+    if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "" || GEMINI_API_KEY.includes("AQ.Ab8RN6IlpXp1o7xszYWFJPUJcKuZnwB7QTeIuUB_bnOzq9R4aQ")) {
         alert("⚠️ Vui lòng mở file js/app.js và dán GEMINI_API_KEY của bạn vào!");
         return;
     }
@@ -297,7 +296,8 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
     btn.disabled = true;
 
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY.trim()}`;
+        // Dùng endpoint /v1/ thay vì /v1beta/
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY.trim()}`;
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -307,61 +307,22 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
         });
 
         const data = await response.json();
-        if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text) {
+
+        if (response.ok && data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text) {
             editor.value = data.candidates[0].content.parts[0].text.trim();
         } else {
-            alert("Không thể sinh bài tập. Vui lòng kiểm tra lại API Key Gemini!");
-            console.error("Gemini Error Payload:", data);
+            // Hiển thị chi tiết thông báo lỗi từ Google
+            const errorMsg = data.error ? data.error.message : "API Key không hợp lệ hoặc model không phản hồi.";
+            alert(`⚠️ Lỗi Gemini API: ${errorMsg}`);
+            console.error("Chi tiết lỗi Gemini:", data);
         }
     } catch (err) {
-        alert("Lỗi kết nối tới Google Gemini API!");
+        alert("Lỗi kết nối mạng tới Google Gemini API!");
         console.error(err);
     } finally {
         btn.innerText = "🪄 Tạo Bài Tập (Gemini)";
         btn.disabled = false;
     }
-}
-
-// Hàm xuất bản in A4 Chuẩn Ô Ly
-function printOliWorksheet(titleName) {
-    const rawContent = document.getElementById("ai-exercise-editor").value.trim();
-    if (!rawContent) return alert("Vui lòng nhập nội dung tập viết trước khi in!");
-
-    const printArea = document.getElementById("print-area");
-    const userName = (currentUser && currentUser.fullname) ? currentUser.fullname : "........................................";
-
-    // Chuyển đổi chuỗi văn bản thành danh sách ô ly mờ
-    const characters = rawContent.replace(/\s+/g, ' ').split('');
-    let gridCellsHTML = characters.map(char => {
-        if (char === ' ') return `<div class="oli-cell"></div>`;
-        return `<div class="oli-cell"><span class="oli-char-trace">${char}</span></div>`;
-    }).join('');
-
-    // Nhân bản thêm ô trống nếu dòng chưa đủ
-    for (let i = 0; i < 40; i++) {
-        gridCellsHTML += `<div class="oli-cell"></div>`;
-    }
-
-    printArea.innerHTML = `
-        <div class="oli-page-container">
-            <div class="oli-header">
-                <div>
-                    <h2 style="font-size: 20px; color: #000; margin-bottom: 5px;">BÀI TẬP LƯYỆN VIẾT VỞ Ô LY: ${titleName.toUpperCase()}</h2>
-                    <p style="font-size: 14px;">Họ và tên học sinh: <strong>${userName}</strong> - Lớp: 1....</p>
-                </div>
-                <div style="font-size: 12px; font-style: italic;">Ngày in: ${new Date().toLocaleDateString('vi-VN')}</div>
-            </div>
-            <div class="oli-line-row">
-                <div class="oli-grid-container">
-                    ${gridCellsHTML}
-                </div>
-            </div>
-        </div>
-    `;
-
-    printArea.classList.remove("hidden");
-    window.print();
-    printArea.classList.add("hidden");
 }
 /* ==========================================================================
    BỔ SUNG 2: GAME ĐỐ VUI RÈN MẮT (ÂM THANH + TẶNG SAO KHEN THƯỞNG)
