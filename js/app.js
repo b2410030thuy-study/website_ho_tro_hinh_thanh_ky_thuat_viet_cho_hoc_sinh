@@ -240,7 +240,7 @@ function saveProfile() {
    BỔ SUNG 1: CẤU HÌNH TẠO BÀI TẬP BẰNG GOOGLE GEMINI API (MIỄN PHÍ) & IN VỞ Ô LY
    ========================================================================== */
 
-// ⚠️ ĐIỀN API KEY GEMINI CỦA BẠN VÀO BÊN DƯỚI
+// ⚠️ ĐIỀN API KEY GEMINI CỦA BẠN VÀO GIỮA HAO DẤU NGOẶC KÉP
 const GEMINI_API_KEY = "AQ.Ab8RN6K9tbTMbeQdqnjQfW10Ecooy1DrkD4nBw5PzcjGqmtWgA";
 
 // Nối Khung AI Gemini & In Ô ly vào Hàm renderLessonDetail
@@ -279,11 +279,12 @@ renderLessonDetail = function() {
 
 // Hàm sinh bài tập tự động dùng Google Gemini API (gemini-1.5-flash)
 async function generateExerciseWithGemini(lessonName) {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6K9tbTMbeQdqnjQfW10Ecooy1DrkD4nBw5PzcjGqmtWgA") {
-        alert("⚠️ Vui lòng mở file js/app.js và dán GEMINI_API_KEY mới của bạn vào!");
+    // Chỉ kiểm tra xem đã nhập Key chưa
+    if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
+        alert("⚠️ Vui lòng mở file js/app.js và dán GEMINI_API_KEY của bạn vào!");
         return;
     }
-
+    
     const userPrompt = document.getElementById("ai-prompt-input").value.trim() || `Tạo 4 từ ngắn hoặc câu luyện viết đơn giản chứa ${lessonName} cho học sinh lớp 1.`;
     const btn = document.getElementById("btn-call-ai");
     const editor = document.getElementById("ai-exercise-editor");
@@ -296,7 +297,7 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
     btn.disabled = true;
 
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY.trim()}`;
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -306,10 +307,11 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
         });
 
         const data = await response.json();
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
+        if (data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text) {
             editor.value = data.candidates[0].content.parts[0].text.trim();
         } else {
             alert("Không thể sinh bài tập. Vui lòng kiểm tra lại API Key Gemini!");
+            console.error("Gemini Error Payload:", data);
         }
     } catch (err) {
         alert("Lỗi kết nối tới Google Gemini API!");
@@ -361,7 +363,6 @@ function printOliWorksheet(titleName) {
     window.print();
     printArea.classList.add("hidden");
 }
-
 /* ==========================================================================
    BỔ SUNG 2: GAME ĐỐ VUI RÈN MẮT (ÂM THANH + TẶNG SAO KHEN THƯỞNG)
    ========================================================================== */
