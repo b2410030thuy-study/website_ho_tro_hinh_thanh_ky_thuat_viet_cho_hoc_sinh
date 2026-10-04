@@ -184,7 +184,7 @@ function renderLessonDetail() {
 
     const dataset = currentTabType === "alphabet" ? ALPHABET_DATA : BASIC_STROKES_DATA;
     const lesson = dataset.find(item => item.id === selectedItemId) || dataset[0];
-    const icon = currentTabType === "alphabet" ? (LETTER_ICONS[lesson.id] || "✏️") : "✍️";
+    const icon = currentTabType === "alphabet" ? (LETTER_ICONS[lesson.id] || "✏️") : "✍️️";
 
     detailArea.innerHTML = `
         <h2 style="font-size:26px; color:#FF477E; font-weight:900;">
@@ -235,33 +235,15 @@ function saveProfile() {
         closeEditProfileModal();
     }
 }
+
 /* ==========================================================================
-   BỔ SUNG 1: CẤU HÌNH OPENAI API KEY & CHỨC NĂNG IN VỞ Ô LY THÔNG MINH (AI)
+   BỔ SUNG 1: CẤU HÌNH TẠO BÀI TẬP BẰNG GOOGLE GEMINI API (MIỄN PHÍ) & IN VỞ Ô LY
    ========================================================================== */
 
-// Khung chứa Key API mặc định hoặc nạp từ localStorage
-let OPENAI_API_KEY = localStorage.getItem("OPENAI_API_KEY") || "YOUR_API_KEY_HERE";
+// ⚠️ ĐIỀN API KEY GEMINI CỦA BẠN VÀO BÊN DƯỚI
+const GEMINI_API_KEY = "AQ.Ab8RN6K9tbTMbeQdqnjQfW10Ecooy1DrkD4nBw5PzcjGqmtWgA";
 
-function openApiKeyModal() {
-    document.getElementById("openai-key-input").value = OPENAI_API_KEY.startsWith("sk-") ? OPENAI_API_KEY : "";
-    document.getElementById("openai-key-modal").classList.remove("hidden");
-}
-
-function closeApiKeyModal() {
-    document.getElementById("openai-key-modal").classList.add("hidden");
-}
-
-function saveApiKey() {
-    const inputKey = document.getElementById("openai-key-input").value.trim();
-    if (inputKey) {
-        OPENAI_API_KEY = inputKey;
-        localStorage.setItem("OPENAI_API_KEY", inputKey);
-        alert("🔑 Đã lưu OpenAI API Key thành công!");
-        closeApiKeyModal();
-    }
-}
-
-// Bổ sung khung AI & In vở Ô ly vào Hàm renderLessonDetail mà KHÔNG làm mất code cũ
+// Nối Khung AI Gemini & In Ô ly vào Hàm renderLessonDetail
 const originalRenderLessonDetail = renderLessonDetail;
 renderLessonDetail = function() {
     // Chạy lại hàm cũ để giữ nguyên 100% giao diện video & hướng dẫn
@@ -279,12 +261,11 @@ renderLessonDetail = function() {
     aiPrintContainer.className = "ai-section";
     aiPrintContainer.innerHTML = `
         <div class="ai-title">
-            <span>✨ AI Tạo Bài Tập Viết Ô Ly Theo Yêu Cầu</span>
-            <button onclick="openApiKeyModal()" style="background:none; border:none; color:#15803D; cursor:pointer; text-decoration:underline; font-size:12px;">⚙️ Cấu hình API Key</button>
+            <span>✨ AI Gemini Tạo Bài Tập Viết Ô Ly Theo Yêu Cầu</span>
         </div>
         <div class="ai-input-group">
             <input type="text" id="ai-prompt-input" placeholder="Ví dụ: Tạo 4 từ ghép chứa chữ ${lesson.name}...">
-            <button class="btn-ai-gen" id="btn-call-ai" onclick="generateExerciseWithAI('${lesson.name}')">🪄 Tạo Bài Tập</button>
+            <button class="btn-ai-gen" id="btn-call-ai" onclick="generateExerciseWithGemini('${lesson.name}')">🪄 Tạo Bài Tập (Gemini)</button>
         </div>
         <textarea id="ai-exercise-editor" class="ai-editor-textarea" placeholder="Nội dung bài tập sẽ hiển thị tại đây... Bé/Cô có thể tự do sửa lại trước khi in.">${defaultText}</textarea>
         
@@ -296,49 +277,45 @@ renderLessonDetail = function() {
     detailArea.appendChild(aiPrintContainer);
 };
 
-// Hàm gọi API OpenAI (gpt-4o-mini hoặc gpt-3.5-turbo)
-async function generateExerciseWithAI(lessonName) {
-    if (!OPENAI_API_KEY || OPENAI_API_KEY === "YOUR_API_KEY_HERE") {
-        alert("Vui lòng bấm '⚙️ Cấu hình API Key' để nhập OpenAI API Key trước khi sử dụng tính năng này!");
-        openApiKeyModal();
+// Hàm sinh bài tập tự động dùng Google Gemini API (gemini-1.5-flash)
+async function generateExerciseWithGemini(lessonName) {
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6K9tbTMbeQdqnjQfW10Ecooy1DrkD4nBw5PzcjGqmtWgA") {
+        alert("⚠️ Vui lòng mở file js/app.js và dán GEMINI_API_KEY mới của bạn vào!");
         return;
     }
 
-    const promptInput = document.getElementById("ai-prompt-input").value.trim() || `Tạo 4 từ ngắn hoặc câu luyện viết đơn giản chứa ${lessonName} cho học sinh lớp 1.`;
+    const userPrompt = document.getElementById("ai-prompt-input").value.trim() || `Tạo 4 từ ngắn hoặc câu luyện viết đơn giản chứa ${lessonName} cho học sinh lớp 1.`;
     const btn = document.getElementById("btn-call-ai");
     const editor = document.getElementById("ai-exercise-editor");
 
-    btn.innerText = "⏳ Đang tạo...";
+    const fullPrompt = `Bạn là một giáo viên tiểu học dạy tiếng Việt lớp 1.
+Yêu cầu: ${userPrompt}.
+Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bởi khoảng trắng hoặc xuống dòng. Không kèm theo lời chào, giải thích hay ký tự đặc biệt như dấu sao (*).`;
+
+    btn.innerText = "⏳ Đang nhờ AI Gemini tạo...";
     btn.disabled = true;
 
     try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const response = await fetch(url, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${OPENAI_API_KEY}`
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                    { role: "system", content: "Bạn là giáo viên tiểu học. Hãy trả về CHỈ danh sách các từ/câu luyện viết lớp 1, cách nhau bởi dấu cách hoặc xuống dòng. KHÔNG kèm lời chào hay giải thích." },
-                    { role: "user", content: promptInput }
-                ],
-                temperature: 0.7
+                contents: [{ parts: [{ text: fullPrompt }] }]
             })
         });
 
         const data = await response.json();
-        if (data.choices && data.choices[0]) {
-            editor.value = data.choices[0].message.content.trim();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            editor.value = data.candidates[0].content.parts[0].text.trim();
         } else {
-            alert("Lỗi khi kết nối OpenAI: " + (data.error?.message || "Không thể tạo bài tập"));
+            alert("Không thể sinh bài tập. Vui lòng kiểm tra lại API Key Gemini!");
         }
     } catch (err) {
-        alert("Lỗi mạng hoặc API Key không hợp lệ!");
+        alert("Lỗi kết nối tới Google Gemini API!");
         console.error(err);
     } finally {
-        btn.innerText = "🪄 Tạo Bài Tập";
+        btn.innerText = "🪄 Tạo Bài Tập (Gemini)";
         btn.disabled = false;
     }
 }
@@ -384,7 +361,6 @@ function printOliWorksheet(titleName) {
     window.print();
     printArea.classList.add("hidden");
 }
-
 
 /* ==========================================================================
    BỔ SUNG 2: GAME ĐỐ VUI RÈN MẮT (ÂM THANH + TẶNG SAO KHEN THƯỞNG)
