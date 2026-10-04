@@ -114,7 +114,7 @@ function renderContent(tabName) {
             <div class="workspace-grid">
                 <aside class="alphabet-sidebar">
                     <div style="display:flex; gap:8px; margin-bottom:15px;">
-                        <button id="btn-type-alpha" class="role-btn active" style="font-size:14px; padding:8px;" onclick="switchStudyType('alphabet')">🔤 29 Chữ Cái</button>
+                        <button id="btn-type-alpha" class="role-btn active" style="font-size:14px; padding:8px;" onclick="switchStudyType('alphabet')">𔤤 29 Chữ Cái</button>
                         <button id="btn-type-stroke" class="role-btn" style="font-size:14px; padding:8px;" onclick="switchStudyType('strokes')">✏️ 14 Nét Cơ Bản</button>
                     </div>
                     <div class="alphabet-grid" id="alphabet-grid"></div>
@@ -184,7 +184,7 @@ function renderLessonDetail() {
 
     const dataset = currentTabType === "alphabet" ? ALPHABET_DATA : BASIC_STROKES_DATA;
     const lesson = dataset.find(item => item.id === selectedItemId) || dataset[0];
-    const icon = currentTabType === "alphabet" ? (LETTER_ICONS[lesson.id] || "✏️") : "✍️️";
+    const icon = currentTabType === "alphabet" ? (LETTER_ICONS[lesson.id] || "✏️") : "✍";
 
     detailArea.innerHTML = `
         <h2 style="font-size:26px; color:#FF477E; font-weight:900;">
@@ -237,16 +237,15 @@ function saveProfile() {
 }
 
 /* ==========================================================================
-   BỔ SUNG 1: CẤU HÌNH TẠO BÀI TẬP BẰNG GOOGLE GEMINI API (MIỄN PHÍ) & IN VỞ Ô LY
+   BỔ SUNG 1: CẤU HÌNH TẠO BÀI TẬP BẰNG GOOGLE GEMINI API & IN VỞ Ô LY
    ========================================================================== */
 
-// ⚠️ ĐIỀN API KEY GEMINI CỦA BẠN VÀO GIỮA HAO DẤU NGOẶC KÉP
+// ⚠️ ĐIỀN API KEY GEMINI CỦA BẠN VÀO GIỮA 2 DẤU NGOẶC KÉP
 const GEMINI_API_KEY = "AQ.Ab8RN6IlpXp1o7xszYWFJPUJcKuZnwB7QTeIuUB_bnOzq9R4aQ";
 
 // Nối Khung AI Gemini & In Ô ly vào Hàm renderLessonDetail
 const originalRenderLessonDetail = renderLessonDetail;
 renderLessonDetail = function() {
-    // Chạy lại hàm cũ để giữ nguyên 100% giao diện video & hướng dẫn
     originalRenderLessonDetail();
 
     const detailArea = document.getElementById("lesson-detail-area");
@@ -256,7 +255,6 @@ renderLessonDetail = function() {
     const lesson = dataset.find(item => item.id === selectedItemId) || dataset[0];
     const defaultText = lesson.upper ? `${lesson.upper} ${lesson.lower} ${lesson.lower} ${lesson.lower}` : `${lesson.char} ${lesson.char} ${lesson.char}`;
 
-    // Nối thêm Khung AI + In Ô Ly vào cuối màn hình xem chi tiết
     const aiPrintContainer = document.createElement("div");
     aiPrintContainer.className = "ai-section";
     aiPrintContainer.innerHTML = `
@@ -277,10 +275,11 @@ renderLessonDetail = function() {
     detailArea.appendChild(aiPrintContainer);
 };
 
-// Hàm sinh bài tập tự động dùng Google Gemini API (gemini-1.5-flash)
+// Hàm sinh bài tập tự động dùng Google Gemini API
 async function generateExerciseWithGemini(lessonName) {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "" || GEMINI_API_KEY.includes("DienKeyCuaBanVaoDay")) {
-        alert("⚠️ Vui lòng dán API Key của bạn vào dòng const GEMINI_API_KEY ở đầu file js/app.js!");
+    const cleanKey = GEMINI_API_KEY ? GEMINI_API_KEY.trim() : "";
+    if (!cleanKey || cleanKey.includes("DienKeyCuaBanVaoDay")) {
+        alert("⚠️ Vui lòng điền GEMINI_API_KEY của bạn vào file js/app.js!");
         return;
     }
     
@@ -296,8 +295,7 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
     btn.disabled = true;
 
     try {
-        // Dùng endpoint /v1/ thay vì /v1beta/
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY.trim()}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cleanKey}`;
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -311,8 +309,7 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
         if (response.ok && data.candidates && data.candidates[0] && data.candidates[0].content.parts[0].text) {
             editor.value = data.candidates[0].content.parts[0].text.trim();
         } else {
-            // Hiển thị chi tiết thông báo lỗi từ Google
-            const errorMsg = data.error ? data.error.message : "API Key không hợp lệ hoặc model không phản hồi.";
+            const errorMsg = data.error ? data.error.message : "API Key không hợp lệ hoặc không thể sinh nội dung.";
             alert(`⚠️ Lỗi Gemini API: ${errorMsg}`);
             console.error("Chi tiết lỗi Gemini:", data);
         }
@@ -324,6 +321,7 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
         btn.disabled = false;
     }
 }
+
 /* ==========================================================================
    BỔ SUNG 2: GAME ĐỐ VUI RÈN MẮT (ÂM THANH + TẶNG SAO KHEN THƯỞNG)
    ========================================================================== */
@@ -331,7 +329,6 @@ Chỉ trả về danh sách các từ/câu luyện viết, phân cách nhau bở
 let totalStars = parseInt(localStorage.getItem("game_stars") || "0");
 let currentGameQuestion = null;
 
-// Bổ sung nút bấm Tab Game vào Header/Nav mà không đè mất Nav cũ
 const originalRenderNav = renderNav;
 renderNav = function() {
     originalRenderNav();
@@ -345,7 +342,6 @@ renderNav = function() {
     }
 };
 
-// Cập nhật RenderContent để xử lý Tab 'game'
 const originalRenderContent = renderContent;
 renderContent = function(tabName) {
     if (tabName === "game") {
@@ -370,7 +366,6 @@ renderContent = function(tabName) {
     }
 };
 
-// Khởi tạo câu hỏi ngẫu nhiên từ Chữ cái & Nét cơ bản
 function initNewGameTurn() {
     const feedback = document.getElementById("game-feedback-text");
     if (feedback) feedback.innerText = "";
@@ -378,7 +373,6 @@ function initNewGameTurn() {
     const allItems = [...ALPHABET_DATA, ...BASIC_STROKES_DATA];
     const targetItem = allItems[Math.floor(Math.random() * allItems.length)];
     
-    // Lấy 3 đáp án sai ngẫu nhiên
     const wrongItems = allItems.filter(i => i.id !== targetItem.id).sort(() => 0.5 - Math.random()).slice(0, 3);
     const options = [targetItem, ...wrongItems].sort(() => 0.5 - Math.random());
 
@@ -401,13 +395,12 @@ function initNewGameTurn() {
     `).join('');
 }
 
-// Phát âm thanh tiếng Việt bằng Web Speech API
 function speakText(text) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Dừng câu nói trước nếu có
+        window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'vi-VN';
-        utterance.rate = 0.85; // Tốc độ thong thả cho bé dễ nghe
+        utterance.rate = 0.85;
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -418,7 +411,6 @@ function replayGameSound() {
     }
 }
 
-// Kiểm tra kết quả & Thưởng sao
 function checkGameAnswer(btnElement, selectedId) {
     const feedback = document.getElementById("game-feedback-text");
     const allBtns = document.querySelectorAll(".answer-btn");
@@ -427,7 +419,6 @@ function checkGameAnswer(btnElement, selectedId) {
         btnElement.classList.add("correct");
         allBtns.forEach(b => b.disabled = true);
 
-        // Cộng Sao & Lưu
         totalStars++;
         localStorage.setItem("game_stars", totalStars.toString());
         document.getElementById("star-count-display").innerText = totalStars;
@@ -436,7 +427,6 @@ function checkGameAnswer(btnElement, selectedId) {
         feedback.innerText = "🎉 Chính xác rồi! Bé giỏi quá!";
         speakText("Chính xác rồi! Bé giỏi quá!");
 
-        // Tự động qua câu mới sau 2.5 giây
         setTimeout(() => {
             initNewGameTurn();
         }, 2500);
