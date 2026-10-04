@@ -1,304 +1,511 @@
-/* ===================================================
-   MAIN APPLICATION LOGIC
-   =================================================== */
+let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+let currentRole = "HS";
+let authTab = "login";
+let currentTabType = "alphabet"; // 'alphabet' hoặc 'strokes'
+let selectedItemId = "a";
 
-let currentRole = 'student';
-let currentUser = null;
-let currentSelectedLetter = ALPHABET_DATA[0];
-let isDrawing = false;
-let userDrawingPoints = [];
+const LETTER_ICONS = {
+    "a": "🍎", "aw": "🍇", "aa": "🍋", "b": "🐮", "c": "🐶", "d": "🐬", "dd": "🐥",
+    "e": "🐘", "ee": "🐸", "g": "🐔", "h": "🐯", "i": "🍦", "k": "🍬", "l": "🍃",
+    "m": "🐱", "n": "🐝", "o": "🎈", "oo": "☂️", "ow": "🍓", "p": "🐼", "q": "🎁",
+    "r": "🤖", "s": "🦁", "t": "🚀", "u": "⛵", "uw": "🦒", "v": "🎻", "x": "🚗", "y": "🍭"
+};
 
-// Khởi tạo ứng dụng
-document.addEventListener("DOMContentLoaded", () => {
-    initDatabase();
-    renderAlphabetGrid();
-    setupCanvas();
+window.addEventListener("DOMContentLoaded", () => {
+    checkAuthState();
 });
 
-function initDatabase() {
-    if (!localStorage.getItem("USERS")) {
-        localStorage.setItem("USERS", JSON.stringify(DEFAULT_USERS));
+function checkAuthState() {
+    const authScreen = document.getElementById("auth-screen");
+    const appScreen = document.getElementById("app-screen");
+
+    if (currentUser) {
+        authScreen.classList.add("hidden");
+        appScreen.classList.remove("hidden");
+        updateUserInfoUI();
+        renderNav();
+        renderContent("study");
+    } else {
+        authScreen.classList.remove("hidden");
+        appScreen.classList.add("hidden");
     }
 }
 
-// Xử lý Auth
 function setRole(role) {
     currentRole = role;
-    document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    document.getElementById("role-hs").classList.toggle("active", role === "HS");
+    document.getElementById("role-gv").classList.toggle("active", role === "GV");
 }
 
-function handleLogin(e) {
-    e.preventDefault();
-    const id = document.getElementById('login-id').value.trim();
-    const pass = document.getElementById('login-pass').value.trim();
-    const users = JSON.parse(localStorage.getItem("USERS"));
+function switchAuthTab(tab) {
+    authTab = tab;
+    document.getElementById("tab-login").classList.toggle("active", tab === "login");
+    document.getElementById("tab-register").classList.toggle("active", tab === "register");
+    
+    const regGroup = document.getElementById("register-fullname-group");
+    const btnSubmit = document.getElementById("btn-auth-submit");
 
-    const user = users.find(u => u.id === id && u.pass === pass && u.role === currentRole);
-
-    if (user) {
-        currentUser = user;
-        document.getElementById('auth-screen').classList.add('hidden');
-        if (user.role === 'student') {
-            document.getElementById('student-app').classList.remove('hidden');
-            document.getElementById('student-name-display').innerText = user.name;
-            document.getElementById('student-stars').innerText = user.stars || 0;
-            initGame();
-        } else {
-            document.getElementById('teacher-app').classList.remove('hidden');
-            renderTeacherStudentTable();
-            populatePrintSelect();
-        }
+    if (tab === "register") {
+        regGroup.classList.remove("hidden");
+        btnSubmit.innerText = "✨ Đăng Ký Tài Khoản";
     } else {
-        const err = document.getElementById('login-error');
-        err.innerText = "Mã số hoặc mật khẩu không chính xác!";
-        err.classList.remove('hidden');
+        regGroup.classList.add("hidden");
+        btnSubmit.innerText = "🚀 BẮT ĐẦU VUI HỌC";
     }
+}
+
+function handleAuth(event) {
+    event.preventDefault();
+    const username = document.getElementById("auth-username").value.trim();
+    const password = document.getElementById("auth-password").value.trim();
+    const fullname = document.getElementById("auth-fullname").value.trim();
+
+    if (!username || !password) return alert("Vui lòng điền đầy đủ thông tin!");
+
+    currentUser = {
+        username: username,
+        fullname: fullname || username,
+        role: currentRole,
+        avatar: currentRole === "GV" ? "👩‍🏫" : "🐱"
+    };
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    checkAuthState();
 }
 
 function logout() {
-    location.reload();
+    localStorage.removeItem("currentUser");
+    currentUser = null;
+    checkAuthState();
 }
 
-/* ===================================================
-   GIAO DIỆN HỌC SINH & ANIMATION SVG
-   =================================================== */
-
-function renderAlphabetGrid() {
-    const container = document.getElementById('alphabet-container');
-    container.innerHTML = "";
-    ALPHABET_DATA.forEach(item => {
-        const card = document.createElement('div');
-        card.className = "letter-card";
-        card.innerHTML = `<span class="char">${item.lower}</span><span style="font-size: 12px; color: #64748B;">${item.upper}</span>`;
-        card.onclick = () => selectLetter(item);
-        container.appendChild(card);
-    });
+function updateUserInfoUI() {
+    if (!currentUser) return;
+    document.getElementById("user-name-display").innerText = currentUser.fullname;
+    document.getElementById("user-avatar-display").innerText = currentUser.avatar || "🐱";
+    document.getElementById("user-role-tag").innerText = currentUser.role === "GV" ? "👩‍🏫 Giáo viên" : "👶 Học sinh";
 }
 
-function selectLetter(letterItem) {
-    currentSelectedLetter = letterItem;
-    document.getElementById('writing-zone').classList.remove('hidden');
-    document.getElementById('selected-letter-title').innerText = `${letterItem.name} (${letterItem.lower} / ${letterItem.upper})`;
-    clearCanvas();
-    drawStaticTemplateSVG();
-    playVoiceInstruction();
-}
-
-function playVoiceInstruction() {
-    VoiceAssistant.speak(`Đây là ${currentSelectedLetter.name}. Con hãy xem cách viết nhé.`);
-}
-
-function drawStaticTemplateSVG() {
-    const svg = document.getElementById('svg-animation');
-    svg.innerHTML = "";
-    currentSelectedLetter.strokes.forEach(stroke => {
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", stroke.d);
-        path.setAttribute("stroke", "#E2E8F0");
-        path.setAttribute("stroke-width", "8");
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke-linecap", "round");
-        svg.appendChild(path);
-    });
-}
-
-function startAnimation() {
-    const svg = document.getElementById('svg-animation');
-    svg.innerHTML = ""; // Clear old
-    
-    currentSelectedLetter.strokes.forEach((stroke, index) => {
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", stroke.d);
-        path.setAttribute("stroke", "#FF7B9C");
-        path.setAttribute("stroke-width", "8");
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke-linecap", "round");
-        
-        const length = 1000; // Chiều dài ước tính nét vẽ
-        path.style.strokeDasharray = length;
-        path.style.strokeDashoffset = length;
-        path.style.animation = `drawStroke 2s ease-in-out forwards ${index * 2}s`;
-        
-        svg.appendChild(path);
-    });
-
-    // Thêm CSS Keyframe động cho SVG Animation
-    if (!document.getElementById('svg-anim-style')) {
-        const style = document.createElement('style');
-        style.id = 'svg-anim-style';
-        style.innerHTML = `@keyframes drawStroke { to { stroke-dashoffset: 0; } }`;
-        document.head.appendChild(style);
-    }
-}
-
-/* ===================================================
-   CANVAS TỰ VIẾT BẰNG TAY (MOUSE/TOUCH)
-   =================================================== */
-
-function setupCanvas() {
-    const canvas = document.getElementById('paint-canvas');
-    const ctx = canvas.getContext('2d');
-
-    const getPos = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: clientX - rect.left, y: clientY - rect.top };
-    };
-
-    const startDraw = (e) => {
-        isDrawing = true;
-        const pos = getPos(e);
-        userDrawingPoints = [pos];
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-        ctx.strokeStyle = "#2B2D42";
-        ctx.lineWidth = 6;
-        ctx.lineCap = "round";
-    };
-
-    const draw = (e) => {
-        if (!isDrawing) return;
-        const pos = getPos(e);
-        userDrawingPoints.push(pos);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-    };
-
-    const stopDraw = () => { isDrawing = false; };
-
-    canvas.addEventListener('mousedown', startDraw);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDraw);
-
-    canvas.addEventListener('touchstart', startDraw);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', stopDraw);
-}
-
-function clearCanvas() {
-    const canvas = document.getElementById('paint-canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    userDrawingPoints = [];
-    document.getElementById('feedback-msg').innerText = "";
-}
-
-function checkWriting() {
-    const result = StrokeRecognizer.evaluateStroke(userDrawingPoints, currentSelectedLetter.strokes[0].d);
-    const feedbackEl = document.getElementById('feedback-msg');
-    feedbackEl.innerText = result.feedback;
-    feedbackEl.style.color = result.isPassed ? "green" : "#E11D48";
-
-    if (result.isPassed && currentUser) {
-        currentUser.stars = (currentUser.stars || 0) + 2;
-        document.getElementById('student-stars').innerText = currentUser.stars;
-        VoiceAssistant.speak("Hoan hô! Con làm tốt lắm.");
-    } else {
-        VoiceAssistant.speak("Con hãy thử lại nhé.");
-    }
-}
-
-/* ===================================================
-   TRÒ CHƠI HỌC TẬP
-   =================================================== */
-let currentGameTarget = null;
-
-function initGame() {
-    const randomIndex = Math.floor(Math.random() * ALPHABET_DATA.length);
-    currentGameTarget = ALPHABET_DATA[randomIndex];
-
-    const optionsContainer = document.getElementById('game-options');
-    optionsContainer.innerHTML = "";
-
-    // Lấy ngẫu nhiên 3 lựa chọn
-    const options = [currentGameTarget];
-    while(options.length < 3) {
-        const rand = ALPHABET_DATA[Math.floor(Math.random() * ALPHABET_DATA.length)];
-        if(!options.find(o => o.id === rand.id)) options.push(rand);
-    }
-    options.sort(() => Math.random() - 0.5);
-
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = "font-hp001";
-        btn.style.cssText = "font-size: 36px; width: 80px; height: 80px; border-radius: 16px; border: 2px solid #4ECDC4; background: white; cursor: pointer;";
-        btn.innerText = opt.lower;
-        btn.onclick = () => checkGameAnswer(opt);
-        optionsContainer.appendChild(btn);
-    });
-}
-
-function playGameAudio() {
-    if (currentGameTarget) {
-        VoiceAssistant.speak(`Hãy tìm chữ ${currentGameTarget.name}`);
-    }
-}
-
-function checkGameAnswer(selected) {
-    if (selected.id === currentGameTarget.id) {
-        alert("Chính xác! Con nhận được 5 ⭐");
-        currentUser.stars += 5;
-        document.getElementById('student-stars').innerText = currentUser.stars;
-        initGame();
-    } else {
-        alert("Chưa đúng rồi! Con thử lại nhé.");
-    }
-}
-
-/* ===================================================
-   GIÁO VIÊN & IN PHIẾU
-   =================================================== */
-
-function renderTeacherStudentTable() {
-    const users = JSON.parse(localStorage.getItem("USERS")).filter(u => u.role === 'student');
-    const tbody = document.getElementById('student-table-body');
-    tbody.innerHTML = "";
-    users.forEach(s => {
-        tbody.innerHTML += `
-            <tr style="border-bottom: 1px solid #E2E8F0;">
-                <td style="padding: 12px;">${s.id}</td>
-                <td style="padding: 12px;">${s.name}</td>
-                <td style="padding: 12px;">${s.class}</td>
-                <td style="padding: 12px;">⭐ ${s.stars}</td>
-            </tr>
+function renderNav() {
+    const navContainer = document.getElementById("main-nav-container");
+    if (currentUser.role === "HS") {
+        navContainer.innerHTML = `
+            <button class="nav-btn active" onclick="switchTab(this, 'study')">📚 Bài Học</button>
+            <button class="nav-btn" onclick="switchTab(this, 'homework')">📝 Bài Tập</button>
         `;
-    });
-}
-
-function populatePrintSelect() {
-    const select = document.getElementById('print-letter-select');
-    select.innerHTML = "";
-    ALPHABET_DATA.forEach(item => {
-        select.innerHTML += `<option value="${item.id}">${item.name} (${item.lower})</option>`;
-    });
-}
-
-function generatePrintSheet() {
-    const letterId = document.getElementById('print-letter-select').value;
-    const item = ALPHABET_DATA.find(a => a.id === letterId);
-    const container = document.getElementById('print-rows-container');
-    container.innerHTML = "";
-
-    for (let i = 0; i < 8; i++) {
-        const row = document.createElement('div');
-        row.style.cssText = "font-family: 'HP001_4_Normal'; font-size: 36px; letter-spacing: 25px; border-bottom: 1px dashed #CCC; margin-bottom: 15px; padding-bottom: 5px;";
-        row.innerText = `${item.lower} ${item.lower} ${item.lower} ${item.lower} ${item.lower} ${item.lower} ${item.lower}`;
-        container.appendChild(row);
+    } else {
+        navContainer.innerHTML = `
+            <button class="nav-btn active" onclick="switchTab(this, 'study')">📚 Bài Học</button>
+            <button class="nav-btn" onclick="switchTab(this, 'manage')">👩‍🏫 Quản Lý Bài Tập</button>
+        `;
     }
 }
 
-function showStudentTab(tab) {
-    document.getElementById('st-tab-learn').classList.add('hidden');
-    document.getElementById('st-tab-games').classList.add('hidden');
-    if(tab === 'learn') document.getElementById('st-tab-learn').classList.remove('hidden');
-    if(tab === 'games') document.getElementById('st-tab-games').classList.remove('hidden');
+function switchTab(btn, tabName) {
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderContent(tabName);
 }
 
-function showTeacherTab(tab) {
-    document.getElementById('tc-tab-students').classList.add('hidden');
-    document.getElementById('tc-tab-print').classList.add('hidden');
-    if(tab === 'students') document.getElementById('tc-tab-students').classList.remove('hidden');
-    if(tab === 'print') document.getElementById('tc-tab-print').classList.remove('hidden');
+function renderContent(tabName) {
+    const contentArea = document.getElementById("content-area");
+
+    if (tabName === "study") {
+        contentArea.innerHTML = `
+            <div class="workspace-grid">
+                <aside class="alphabet-sidebar">
+                    <div style="display:flex; gap:8px; margin-bottom:15px;">
+                        <button id="btn-type-alpha" class="role-btn active" style="font-size:14px; padding:8px;" onclick="switchStudyType('alphabet')">🔤 29 Chữ Cái</button>
+                        <button id="btn-type-stroke" class="role-btn" style="font-size:14px; padding:8px;" onclick="switchStudyType('strokes')">✏️ 14 Nét Cơ Bản</button>
+                    </div>
+                    <div class="alphabet-grid" id="alphabet-grid"></div>
+                </aside>
+                <section class="lesson-card" id="lesson-detail-area"></section>
+            </div>
+        `;
+        renderSidebarGrid();
+        renderLessonDetail();
+    } else if (tabName === "homework") {
+        contentArea.innerHTML = `
+            <div class="lesson-card">
+                <h2>📝 Bài Tập Về Nhà Của Bé</h2>
+                <p style="margin-top:10px; font-weight:700;">Hãy hoàn thành các bài tập dưới đây nhé!</p>
+                <div style="margin-top:15px; background:#FEF3C7; padding:15px; border-radius:15px; border:2px dashed #F59E0B;">
+                    📌 <strong>Bài 1:</strong> Xem video và luyện viết 14 nét cơ bản vào vở ô ly.
+                </div>
+            </div>
+        `;
+    } else if (tabName === "manage") {
+        contentArea.innerHTML = `
+            <div class="lesson-card">
+                <h2>👩‍🏫 Bảng Quản Lý Dành Cho Giáo Viên</h2>
+                <p style="margin-top:10px; font-weight:700;">Cô có thể giao thêm bài tập cho các bé tại đây.</p>
+            </div>
+        `;
+    }
+}
+
+function switchStudyType(type) {
+    currentTabType = type;
+    document.getElementById("btn-type-alpha").classList.toggle("active", type === "alphabet");
+    document.getElementById("btn-type-stroke").classList.toggle("active", type === "strokes");
+    selectedItemId = type === "alphabet" ? "a" : "sothang";
+    renderSidebarGrid();
+    renderLessonDetail();
+}
+
+function renderSidebarGrid() {
+    const grid = document.getElementById("alphabet-grid");
+    if (!grid) return;
+
+    const dataset = currentTabType === "alphabet" ? ALPHABET_DATA : BASIC_STROKES_DATA;
+
+    grid.innerHTML = dataset.map(item => {
+        const icon = currentTabType === "alphabet" ? (LETTER_ICONS[item.id] || "✏️") : "✍️";
+        const displayText = currentTabType === "alphabet" ? `${item.upper} ${item.lower}` : item.char;
+        const isActive = item.id === selectedItemId ? "active" : "";
+        return `
+            <button class="letter-btn ${isActive}" onclick="selectItem('${item.id}')">
+                <span class="char">${displayText}</span>
+                <span class="sub-icon">${icon}</span>
+            </button>
+        `;
+    }).join("");
+}
+
+function selectItem(id) {
+    selectedItemId = id;
+    renderSidebarGrid();
+    renderLessonDetail();
+}
+
+function renderLessonDetail() {
+    const detailArea = document.getElementById("lesson-detail-area");
+    if (!detailArea) return;
+
+    const dataset = currentTabType === "alphabet" ? ALPHABET_DATA : BASIC_STROKES_DATA;
+    const lesson = dataset.find(item => item.id === selectedItemId) || dataset[0];
+    const icon = currentTabType === "alphabet" ? (LETTER_ICONS[lesson.id] || "✏️") : "✍️";
+
+    detailArea.innerHTML = `
+        <h2 style="font-size:26px; color:#FF477E; font-weight:900;">
+            ${icon} Bài Học: ${lesson.name} ${lesson.upper ? `(${lesson.upper} -${lesson.lower})` : ''}
+        </h2>
+
+        <div class="tv-container">
+            <div class="video-frame-container">
+                <iframe 
+                    src="https://www.youtube-nocookie.com/embed/${lesson.youtubeId}?rel=0" 
+                    title="${lesson.name}"
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+
+        <div class="lesson-guide">
+            <div class="guide-title">
+                <span>✏️</span> Hướng dẫn nét viết:
+            </div>
+            <div class="guide-text">${lesson.description}</div>
+        </div>
+    `;
+}
+
+function openEditProfileModal() {
+    if (!currentUser) return;
+    document.getElementById("edit-name-input").value = currentUser.fullname;
+    document.getElementById("edit-avatar-select").value = currentUser.avatar || "🐱";
+    document.getElementById("profile-modal").classList.remove("hidden");
+}
+
+function closeEditProfileModal() {
+    document.getElementById("profile-modal").classList.add("hidden");
+}
+
+function saveProfile() {
+    const newName = document.getElementById("edit-name-input").value.trim();
+    const newAvatar = document.getElementById("edit-avatar-select").value;
+
+    if (newName) {
+        currentUser.fullname = newName;
+        currentUser.avatar = newAvatar;
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        updateUserInfoUI();
+        closeEditProfileModal();
+    }
+}
+/* ==========================================================================
+   BỔ SUNG 1: CẤU HÌNH OPENAI API KEY & CHỨC NĂNG IN VỞ Ô LY THÔNG MINH (AI)
+   ========================================================================== */
+
+// Khung chứa Key API mặc định hoặc nạp từ localStorage
+let OPENAI_API_KEY = localStorage.getItem("OPENAI_API_KEY") || "YOUR_API_KEY_HERE";
+
+function openApiKeyModal() {
+    document.getElementById("openai-key-input").value = OPENAI_API_KEY.startsWith("sk-") ? OPENAI_API_KEY : "";
+    document.getElementById("openai-key-modal").classList.remove("hidden");
+}
+
+function closeApiKeyModal() {
+    document.getElementById("openai-key-modal").classList.add("hidden");
+}
+
+function saveApiKey() {
+    const inputKey = document.getElementById("openai-key-input").value.trim();
+    if (inputKey) {
+        OPENAI_API_KEY = inputKey;
+        localStorage.setItem("OPENAI_API_KEY", inputKey);
+        alert("🔑 Đã lưu OpenAI API Key thành công!");
+        closeApiKeyModal();
+    }
+}
+
+// Bổ sung khung AI & In vở Ô ly vào Hàm renderLessonDetail mà KHÔNG làm mất code cũ
+const originalRenderLessonDetail = renderLessonDetail;
+renderLessonDetail = function() {
+    // Chạy lại hàm cũ để giữ nguyên 100% giao diện video & hướng dẫn
+    originalRenderLessonDetail();
+
+    const detailArea = document.getElementById("lesson-detail-area");
+    if (!detailArea) return;
+
+    const dataset = (typeof currentTabType !== "undefined" && currentTabType === "strokes") ? BASIC_STROKES_DATA : ALPHABET_DATA;
+    const lesson = dataset.find(item => item.id === selectedItemId) || dataset[0];
+    const defaultText = lesson.upper ? `${lesson.upper} ${lesson.lower} ${lesson.lower} ${lesson.lower}` : `${lesson.char} ${lesson.char} ${lesson.char}`;
+
+    // Nối thêm Khung AI + In Ô Ly vào cuối màn hình xem chi tiết
+    const aiPrintContainer = document.createElement("div");
+    aiPrintContainer.className = "ai-section";
+    aiPrintContainer.innerHTML = `
+        <div class="ai-title">
+            <span>✨ AI Tạo Bài Tập Viết Ô Ly Theo Yêu Cầu</span>
+            <button onclick="openApiKeyModal()" style="background:none; border:none; color:#15803D; cursor:pointer; text-decoration:underline; font-size:12px;">⚙️ Cấu hình API Key</button>
+        </div>
+        <div class="ai-input-group">
+            <input type="text" id="ai-prompt-input" placeholder="Ví dụ: Tạo 4 từ ghép chứa chữ ${lesson.name}...">
+            <button class="btn-ai-gen" id="btn-call-ai" onclick="generateExerciseWithAI('${lesson.name}')">🪄 Tạo Bài Tập</button>
+        </div>
+        <textarea id="ai-exercise-editor" class="ai-editor-textarea" placeholder="Nội dung bài tập sẽ hiển thị tại đây... Bé/Cô có thể tự do sửa lại trước khi in.">${defaultText}</textarea>
+        
+        <div class="print-action-bar">
+            <button class="btn-print" onclick="printOliWorksheet('${lesson.name}')">𖤂 In Bảng Tập Viết Vở Ô Ly (A4)</button>
+        </div>
+    `;
+
+    detailArea.appendChild(aiPrintContainer);
+};
+
+// Hàm gọi API OpenAI (gpt-4o-mini hoặc gpt-3.5-turbo)
+async function generateExerciseWithAI(lessonName) {
+    if (!OPENAI_API_KEY || OPENAI_API_KEY === "YOUR_API_KEY_HERE") {
+        alert("Vui lòng bấm '⚙️ Cấu hình API Key' để nhập OpenAI API Key trước khi sử dụng tính năng này!");
+        openApiKeyModal();
+        return;
+    }
+
+    const promptInput = document.getElementById("ai-prompt-input").value.trim() || `Tạo 4 từ ngắn hoặc câu luyện viết đơn giản chứa ${lessonName} cho học sinh lớp 1.`;
+    const btn = document.getElementById("btn-call-ai");
+    const editor = document.getElementById("ai-exercise-editor");
+
+    btn.innerText = "⏳ Đang tạo...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: "Bạn là giáo viên tiểu học. Hãy trả về CHỈ danh sách các từ/câu luyện viết lớp 1, cách nhau bởi dấu cách hoặc xuống dòng. KHÔNG kèm lời chào hay giải thích." },
+                    { role: "user", content: promptInput }
+                ],
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+        if (data.choices && data.choices[0]) {
+            editor.value = data.choices[0].message.content.trim();
+        } else {
+            alert("Lỗi khi kết nối OpenAI: " + (data.error?.message || "Không thể tạo bài tập"));
+        }
+    } catch (err) {
+        alert("Lỗi mạng hoặc API Key không hợp lệ!");
+        console.error(err);
+    } finally {
+        btn.innerText = "🪄 Tạo Bài Tập";
+        btn.disabled = false;
+    }
+}
+
+// Hàm xuất bản in A4 Chuẩn Ô Ly
+function printOliWorksheet(titleName) {
+    const rawContent = document.getElementById("ai-exercise-editor").value.trim();
+    if (!rawContent) return alert("Vui lòng nhập nội dung tập viết trước khi in!");
+
+    const printArea = document.getElementById("print-area");
+    const userName = (currentUser && currentUser.fullname) ? currentUser.fullname : "........................................";
+
+    // Chuyển đổi chuỗi văn bản thành danh sách ô ly mờ
+    const characters = rawContent.replace(/\s+/g, ' ').split('');
+    let gridCellsHTML = characters.map(char => {
+        if (char === ' ') return `<div class="oli-cell"></div>`;
+        return `<div class="oli-cell"><span class="oli-char-trace">${char}</span></div>`;
+    }).join('');
+
+    // Nhân bản thêm ô trống nếu dòng chưa đủ
+    for (let i = 0; i < 40; i++) {
+        gridCellsHTML += `<div class="oli-cell"></div>`;
+    }
+
+    printArea.innerHTML = `
+        <div class="oli-page-container">
+            <div class="oli-header">
+                <div>
+                    <h2 style="font-size: 20px; color: #000; margin-bottom: 5px;">BÀI TẬP LƯYỆN VIẾT VỞ Ô LY: ${titleName.toUpperCase()}</h2>
+                    <p style="font-size: 14px;">Họ và tên học sinh: <strong>${userName}</strong> - Lớp: 1....</p>
+                </div>
+                <div style="font-size: 12px; font-style: italic;">Ngày in: ${new Date().toLocaleDateString('vi-VN')}</div>
+            </div>
+            <div class="oli-line-row">
+                <div class="oli-grid-container">
+                    ${gridCellsHTML}
+                </div>
+            </div>
+        </div>
+    `;
+
+    printArea.classList.remove("hidden");
+    window.print();
+    printArea.classList.add("hidden");
+}
+
+
+/* ==========================================================================
+   BỔ SUNG 2: GAME ĐỐ VUI RÈN MẮT (ÂM THANH + TẶNG SAO KHEN THƯỞNG)
+   ========================================================================== */
+
+let totalStars = parseInt(localStorage.getItem("game_stars") || "0");
+let currentGameQuestion = null;
+
+// Bổ sung nút bấm Tab Game vào Header/Nav mà không đè mất Nav cũ
+const originalRenderNav = renderNav;
+renderNav = function() {
+    originalRenderNav();
+    const navContainer = document.getElementById("main-nav-container");
+    if (navContainer) {
+        const gameNavBtn = document.createElement("button");
+        gameNavBtn.className = "nav-btn";
+        gameNavBtn.innerText = "🎮 Đố Vui Rèn Mắt";
+        gameNavBtn.onclick = function() { switchTab(this, 'game'); };
+        navContainer.appendChild(gameNavBtn);
+    }
+};
+
+// Cập nhật RenderContent để xử lý Tab 'game'
+const originalRenderContent = renderContent;
+renderContent = function(tabName) {
+    if (tabName === "game") {
+        const contentArea = document.getElementById("content-area");
+        contentArea.innerHTML = `
+            <div class="game-card">
+                <div class="game-header-bar">
+                    <h2 style="color:#FF477E; margin:0;">🎮 Đố Vui Rèn Mắt</h2>
+                    <div class="star-counter">⭐ <span id="star-count-display">${totalStars}</span> Sao</div>
+                </div>
+                <div class="question-box">
+                    <div class="question-text" id="game-question-text">Đang tải câu hỏi...</div>
+                    <button class="btn-replay-sound" onclick="replayGameSound()">🔊 Nghe Lại Câu Hỏi</button>
+                </div>
+                <div class="answers-grid" id="game-answers-grid"></div>
+                <div class="game-feedback" id="game-feedback-text"></div>
+            </div>
+        `;
+        initNewGameTurn();
+    } else {
+        originalRenderContent(tabName);
+    }
+};
+
+// Khởi tạo câu hỏi ngẫu nhiên từ Chữ cái & Nét cơ bản
+function initNewGameTurn() {
+    const feedback = document.getElementById("game-feedback-text");
+    if (feedback) feedback.innerText = "";
+
+    const allItems = [...ALPHABET_DATA, ...BASIC_STROKES_DATA];
+    const targetItem = allItems[Math.floor(Math.random() * allItems.length)];
+    
+    // Lấy 3 đáp án sai ngẫu nhiên
+    const wrongItems = allItems.filter(i => i.id !== targetItem.id).sort(() => 0.5 - Math.random()).slice(0, 3);
+    const options = [targetItem, ...wrongItems].sort(() => 0.5 - Math.random());
+
+    const isStroke = !!targetItem.char;
+    const questionPrompt = isStroke ? `Bé hãy tìm: ${targetItem.name}` : `Bé hãy tìm chữ: ${targetItem.name}`;
+
+    currentGameQuestion = {
+        prompt: questionPrompt,
+        correctId: targetItem.id
+    };
+
+    document.getElementById("game-question-text").innerText = questionPrompt;
+    speakText(questionPrompt);
+
+    const grid = document.getElementById("game-answers-grid");
+    grid.innerHTML = options.map(item => `
+        <button class="answer-btn" onclick="checkGameAnswer(this, '${item.id}')">
+            ${item.upper ? `${item.upper}${item.lower}` : (item.char || item.symbol)}
+        </button>
+    `).join('');
+}
+
+// Phát âm thanh tiếng Việt bằng Web Speech API
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Dừng câu nói trước nếu có
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 0.85; // Tốc độ thong thả cho bé dễ nghe
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function replayGameSound() {
+    if (currentGameQuestion) {
+        speakText(currentGameQuestion.prompt);
+    }
+}
+
+// Kiểm tra kết quả & Thưởng sao
+function checkGameAnswer(btnElement, selectedId) {
+    const feedback = document.getElementById("game-feedback-text");
+    const allBtns = document.querySelectorAll(".answer-btn");
+
+    if (selectedId === currentGameQuestion.correctId) {
+        btnElement.classList.add("correct");
+        allBtns.forEach(b => b.disabled = true);
+
+        // Cộng Sao & Lưu
+        totalStars++;
+        localStorage.setItem("game_stars", totalStars.toString());
+        document.getElementById("star-count-display").innerText = totalStars;
+
+        feedback.style.color = "#16A34A";
+        feedback.innerText = "🎉 Chính xác rồi! Bé giỏi quá!";
+        speakText("Chính xác rồi! Bé giỏi quá!");
+
+        // Tự động qua câu mới sau 2.5 giây
+        setTimeout(() => {
+            initNewGameTurn();
+        }, 2500);
+    } else {
+        btnElement.classList.add("wrong");
+        feedback.style.color = "#DC2626";
+        feedback.innerText = "💡 Chưa đúng rồi! Bé thử lại nhé!";
+        speakText("Chưa đúng rồi! Bé thử lại nhé!");
+    }
 }
