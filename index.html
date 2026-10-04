@@ -3,152 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bé Tập Viết Tiếng Việt Lớp 1 - HP001</title>
+    <title>Bé Luyện Viết Chữ Việt</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <!-- MÀN HÌNH ĐĂNG NHẬP -->
-    <div id="auth-screen" class="auth-container">
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="auth-screen" class="auth-wrapper">
         <div class="auth-card">
-            <div class="mascot-avatar">🐰</div>
-            <h2>BÉ TẬP VIẾT TIẾNG VIỆT</h2>
-            <p style="color: #64748B; margin-bottom: 15px;">Dành cho Học Sinh Lớp 1</p>
+            <h1 class="auth-title">✨ BÉ HỌC VIẾT CHỮ ✨</h1>
+            <p class="auth-subtitle">Học chữ cái & nét cơ bản cực vui!</p>
 
+            <!-- Chọn vai trò -->
             <div class="role-selector">
-                <button type="button" class="role-btn active" onclick="setRole('student')">🧒 HỌC SINH</button>
-                <button type="button" class="role-btn" onclick="setRole('teacher')">👩‍🏫 GIÁO VIÊN</button>
+                <button id="role-hs" class="role-btn active" onclick="setRole('HS')">👶 Học Sinh</button>
+                <button id="role-gv" class="role-btn" onclick="setRole('GV')">👩‍🏫 Giáo Viên</button>
             </div>
 
-            <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="input-group">
-                    <label>Mã số đăng nhập:</label>
-                    <input type="text" id="login-id" placeholder="Ví dụ: HS001 hoặc GV001" required>
+            <!-- Tab Đăng nhập / Đăng ký -->
+            <div class="auth-tabs">
+                <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Đăng Nhập</button>
+                <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Đăng Ký</button>
+            </div>
+
+            <!-- Form -->
+            <form onsubmit="handleAuth(event)">
+                <div id="register-fullname-group" class="form-group hidden">
+                    <label>Họ và tên của Bé/Cô:</label>
+                    <input type="text" id="auth-fullname" placeholder="Nhập họ và tên...">
                 </div>
-                <div class="input-group">
+                <div class="form-group">
+                    <label>Tên đăng nhập:</label>
+                    <input type="text" id="auth-username" required placeholder="Nhập tên đăng nhập...">
+                </div>
+                <div class="form-group">
                     <label>Mật khẩu:</label>
-                    <input type="password" id="login-pass" placeholder="Nhập mật khẩu" required>
+                    <input type="password" id="auth-password" required placeholder="Nhập mật khẩu...">
                 </div>
-                <div id="login-error" style="color: red; margin-bottom: 10px; font-size: 14px;" class="hidden"></div>
-                <button type="submit" class="btn-main">ĐĂNG NHẬP</button>
+                <button type="submit" id="btn-auth-submit" class="submit-btn">🚀 BẮT ĐẦU VUI HỌC</button>
             </form>
         </div>
     </div>
 
-    <!-- GIAO DIỆN HỌC SINH -->
-    <div id="student-app" class="app-layout hidden">
-        <div class="sidebar">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 40px;">🐰</div>
-                <h3 id="student-name-display">Bé An</h3>
-                <span style="background: #FFE5EC; color: #FF527B; padding: 4px 12px; border-radius: 20px; font-weight: bold;">
-                    ⭐ <span id="student-stars">0</span> Sao
-                </span>
+    <!-- 2. MÀN HÌNH ỨNG DỤNG CHÍNH -->
+    <div id="app-screen" class="app-container hidden">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="logo-icon">✏️</span>
+                <span class="logo-text">Bé Viết Chữ Đẹp</span>
             </div>
-            <div class="sidebar-menu">
-                <button onclick="showStudentTab('home')" class="active">🏠 Trang chủ</button>
-                <button onclick="showStudentTab('learn')">✍️ Học chữ cái</button>
-                <button onclick="showStudentTab('games')">🎮 Trò chơi</button>
-                <button onclick="logout()" style="color: red; margin-top: 40px;">🚪 Đăng xuất</button>
-            </div>
-        </div>
 
-        <div class="main-content">
-            <!-- TAB HỌC CHỮ -->
-            <div id="st-tab-learn">
-                <h2>HỌC CHỮ CÁI TIẾNG VIỆT</h2>
-                <div class="letter-grid" id="alphabet-container"></div>
+            <!-- Điều hướng Tab -->
+            <nav class="main-nav" id="main-nav-container"></nav>
 
-                <!-- BẢNG TẬP VIẾT -->
-                <div id="writing-zone" class="hidden" style="margin-top: 30px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 id="selected-letter-title" class="font-hp001" style="font-size: 28px;">Chữ a</h3>
-                        <div>
-                            <button onclick="playVoiceInstruction()" style="padding: 8px 16px; background: #4ECDC4; color: white; border: none; border-radius: 8px; cursor: pointer;">🔊 Nghe đọc</button>
-                            <button onclick="startAnimation()" style="padding: 8px 16px; background: #FFD166; border: none; border-radius: 8px; cursor: pointer;">▶ Xem cách viết</button>
-                        </div>
-                    </div>
-
-                    <!-- Khung Ô ly -->
-                    <div class="oly-grid-container">
-                        <svg id="svg-animation" class="oly-svg"></svg>
-                        <canvas id="paint-canvas" class="oly-canvas" width="600" height="400"></canvas>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button onclick="clearCanvas()" style="padding: 10px 20px; background: #CBD5E1; border: none; border-radius: 8px;">🗑️ Xóa viết lại</button>
-                        <button onclick="checkWriting()" style="padding: 10px 20px; background: #FF7B9C; color: white; border: none; border-radius: 8px; font-weight: bold;">✔️ Chấm điểm</button>
-                    </div>
-                    <div id="feedback-msg" style="text-align: center; margin-top: 10px; font-weight: bold; font-size: 18px;"></div>
+            <!-- Thông tin người dùng -->
+            <div class="user-profile" onclick="openEditProfileModal()">
+                <span id="user-avatar-display" class="user-avatar">🐱</span>
+                <div class="user-info">
+                    <span id="user-name-display" class="user-name">Tên Người Dùng</span>
+                    <span id="user-role-tag" class="user-role">👶 Học sinh</span>
                 </div>
+                <button class="logout-btn" onclick="event.stopPropagation(); logout();" title="Đăng xuất">🚪</button>
             </div>
+        </header>
 
-            <!-- TAB TRÒ CHƠI -->
-            <div id="st-tab-games" class="hidden">
-                <h2>🎮 TRÒ CHƠI LUYỆN CHỮ</h2>
-                <div style="background: white; padding: 20px; border-radius: 16px; margin-top: 20px; text-align: center;">
-                    <h3>GAME: TÌM CHỮ THEO PHÁT ÂM</h3>
-                    <p style="margin: 10px 0;">Nghe âm thanh và chọn đúng chữ cái nhé!</p>
-                    <button onclick="playGameAudio()" style="padding: 10px 20px; background: #4ECDC4; color: white; border: none; border-radius: 8px; margin-bottom: 20px;">🔊 Nghe lại âm</button>
-                    <div id="game-options" style="display: flex; justify-content: center; gap: 15px;"></div>
-                </div>
+        <!-- NỘI DUNG CHÍNH -->
+        <main class="main-content" id="content-area"></main>
+    </div>
+
+    <!-- 3. MODAL SỬA HỒ SƠ -->
+    <div id="profile-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>✏️ Chỉnh Sửa Hồ Sơ</h3>
+            <div class="form-group">
+                <label>Tên hiển thị:</label>
+                <input type="text" id="edit-name-input">
+            </div>
+            <div class="form-group">
+                <label>Chọn Avatar:</label>
+                <select id="edit-avatar-select">
+                    <option value="🐱">🐱 Mèo Con</option>
+                    <option value="🐶">🐶 Chó Cún</option>
+                    <option value="🐰">🐰 Thỏ Trắng</option>
+                    <option value="🐼">🐼 Gấu Trúc</option>
+                    <option value="👩‍🏫">👩‍🏫 Cô Giáo</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeEditProfileModal()">Hủy</button>
+                <button class="modal-btn save" onclick="saveProfile()">Lưu Lại</button>
             </div>
         </div>
     </div>
 
-    <!-- GIAO DIỆN GIÁO VIÊN -->
-    <div id="teacher-app" class="app-layout hidden">
-        <div class="sidebar">
-            <h3>QUẢN LÝ GIÁO VIÊN</h3>
-            <div class="sidebar-menu" style="margin-top: 20px;">
-                <button onclick="showTeacherTab('students')" class="active">👧 Học sinh</button>
-                <button onclick="showTeacherTab('print')">🖨️ In Phiếu Viết</button>
-                <button onclick="logout()" style="color: red; margin-top: 40px;">🚪 Đăng xuất</button>
-            </div>
-        </div>
-
-        <div class="main-content">
-            <!-- QUẢN LÝ HỌC SINH -->
-            <div id="tc-tab-students">
-                <h2>DANH SÁCH HỌC SINH</h2>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden;">
-                    <thead style="background: #F1F5F9;">
-                        <tr>
-                            <th style="padding: 12px; text-align: left;">Mã HS</th>
-                            <th style="padding: 12px; text-align: left;">Họ tên</th>
-                            <th style="padding: 12px; text-align: left;">Lớp</th>
-                            <th style="padding: 12px; text-align: left;">Số sao</th>
-                        </tr>
-                    </thead>
-                    <tbody id="student-table-body"></tbody>
-                </table>
-            </div>
-
-            <!-- TAB IN PHIẾU BÀI TẬP -->
-            <div id="tc-tab-print" class="hidden">
-                <h2>TẠO PHIẾU LUYỆN VIẾT IN A4</h2>
-                <div style="margin: 20px 0;">
-                    <label>Chọn chữ cái in phiếu:</label>
-                    <select id="print-letter-select" style="padding: 8px; border-radius: 8px;"></select>
-                    <button onclick="generatePrintSheet()" style="padding: 8px 16px; background: #FF7B9C; color: white; border: none; border-radius: 8px;">Tạo Phiếu In</button>
-                    <button onclick="window.print()" style="padding: 8px 16px; background: #2B2D42; color: white; border: none; border-radius: 8px; margin-left: 10px;">🖨️ In Ngay (A4)</button>
-                </div>
-
-                <div id="print-section">
-                    <div class="oly-paper">
-                        <h2 style="text-align: center; font-family: 'HP001_4_Normal'; font-size: 32px;">PHIẾU LUYỆN VIẾT TIỂU HỌC</h2>
-                        <p style="text-align: center;">Họ và tên học sinh: ..................................................... Lớp: .............</p>
-                        <hr style="margin: 20px 0;">
-                        <div id="print-rows-container"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Tải tệp dữ liệu trước, sau đó nạp ứng dụng -->
     <script src="js/data.js"></script>
-    <script src="js/strokeRecognizer.js"></script>
-    <script src="js/speech.js"></script>
     <script src="js/app.js"></script>
+<!-- BỔ SUNG: MODAL CẤU HÌNH OPENAI API KEY -->
+<div id="openai-key-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3>🔑 Nhập OpenAI API Key</h3>
+        <p style="font-size: 13px; color: #666; margin: 10px 0;">API Key dùng để sinh bài tập tự động bằng AI. Key được lưu an toàn trong trình duyệt của bạn (localStorage).</p>
+        <div class="form-group">
+            <label>OpenAI API Key (sk-...):</label>
+            <input type="password" id="openai-key-input" placeholder="sk-proj-...">
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeApiKeyModal()">Hủy</button>
+            <button class="modal-btn save" onclick="saveApiKey()">Lưu Key</button>
+        </div>
+    </div>
+</div>
+
+<!-- STYLESHEET BỔ SUNG DÀNH RIÊNG CHO IN ẤN KHỔ A4 VỞ Ô LY -->
+<style media="print">
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+    body * {
+        visibility: hidden !important;
+    }
+    #print-area, #print-area * {
+        visibility: visible !important;
+    }
+    #print-area {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: white !important;
+        color: black !important;
+    }
+</style>
+
+<!-- KHUNG CHỨA NỘI DUNG IN ẨN TRÊN MÀN HÌNH CHÍNH -->
+<div id="print-area" class="hidden"></div>
 </body>
 </html>
