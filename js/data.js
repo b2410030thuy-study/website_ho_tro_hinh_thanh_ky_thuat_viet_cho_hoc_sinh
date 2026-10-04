@@ -1,41 +1,50 @@
-/* ===================================================
-   DATA SYSTEM: 29 LETTER DATA & STROKES
-   =================================================== */
-
+// 1. DỮ LIỆU 29 CHỮ CÁI TIẾNG VIỆT
 const ALPHABET_DATA = [
-    { id: "a", lower: "a", upper: "A", name: "Chữ a", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 40,40 0 1,0 350,260 A 40,40 0 1,0 350,180" }, { name: "Nét móc ngược", d: "M 390,180 L 390,250 Q 390,270 410,270" }] },
-    { id: "aw", lower: "ă", upper: "Ă", name: "Chữ ă", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 40,40 0 1,0 350,260 A 40,40 0 1,0 350,180" }, { name: "Nét móc ngược", d: "M 390,180 L 390,250 Q 390,270 410,270" }, { name: "Nét cong dưới (Nón ă)", d: "M 330,140 Q 350,160 370,140" }] },
-    { id: "aa", lower: "â", upper: "Â", name: "Chữ â", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 40,40 0 1,0 350,260 A 40,40 0 1,0 350,180" }, { name: "Nét móc ngược", d: "M 390,180 L 390,250 Q 390,270 410,270" }, { name: "Dấu mũ â", d: "M 330,150 L 350,130 L 370,150" }] },
-    { id: "b", lower: "b", upper: "B", name: "Chữ b", strokes: [{ name: "Nét khuyết trên + Nét thắt", d: "M 250,270 L 250,120 Q 250,90 270,90 Q 290,90 290,120 L 290,250 Q 290,270 310,250" }] },
-    { id: "c", lower: "c", upper: "C", name: "Chữ c", strokes: [{ name: "Nét cong trái", d: "M 380,190 Q 330,180 330,225 Q 330,270 380,260" }] },
-    { id: "d", lower: "d", upper: "D", name: "Chữ d", strokes: [{ name: "Nét cong kín", d: "M 350,210 A 30,30 0 1,0 350,270 A 30,30 0 1,0 350,210" }, { name: "Nét móc ngược dài", d: "M 380,120 L 380,250 Q 380,270 400,270" }] },
-    { id: "dd", lower: "đ", upper: "Đ", name: "Chữ đ", strokes: [{ name: "Nét cong kín", d: "M 350,210 A 30,30 0 1,0 350,270 A 30,30 0 1,0 350,210" }, { name: "Nét móc ngược dài", d: "M 380,120 L 380,250 Q 380,270 400,270" }, { name: "Nét gạch ngang", d: "M 360,160 L 400,160" }] },
-    { id: "e", lower: "e", upper: "E", name: "Chữ e", strokes: [{ name: "Nét cong phải kết hợp cong trái", d: "M 320,240 L 380,230 Q 380,190 340,190 Q 310,220 350,270" }] },
-    { id: "ee", lower: "ê", upper: "Ê", name: "Chữ ê", strokes: [{ name: "Thân chữ e", d: "M 320,240 L 380,230 Q 380,190 340,190 Q 310,220 350,270" }, { name: "Dấu mũ ê", d: "M 330,170 L 350,150 L 370,170" }] },
-    { id: "g", lower: "g", upper: "G", name: "Chữ g", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 30,30 0 1,0 350,240 A 30,30 0 1,0 350,180" }, { name: "Nét khuyết dưới", d: "M 380,180 L 380,300 Q 380,330 350,330 Q 330,330 330,300 L 410,200" }] },
-    { id: "h", lower: "h", upper: "H", name: "Chữ h", strokes: [{ name: "Nét khuyết trên", d: "M 280,270 L 280,120 Q 280,90 300,90 Q 320,100 320,130 L 320,270" }, { name: "Nét móc hai đầu", d: "M 320,210 Q 320,180 350,180 Q 380,180 380,210 L 380,250 Q 380,270 400,270" }] },
-    { id: "i", lower: "i", upper: "I", name: "Chữ i", strokes: [{ name: "Nét hất", d: "M 300,220 L 330,180" }, { name: "Nét móc ngược", d: "M 330,180 L 330,250 Q 330,270 350,270" }, { name: "Dấu chấm", d: "M 330,150 A 3,3 0 1,1 330,156" }] },
-    { id: "k", lower: "k", upper: "K", name: "Chữ k", strokes: [{ name: "Nét khuyết trên", d: "M 280,270 L 280,120 Q 280,90 300,90 Q 320,100 320,130 L 320,270" }, { name: "Nét thắt giữa", d: "M 320,210 L 360,180 L 335,220 L 370,270" }] },
-    { id: "l", lower: "l", upper: "L", name: "Chữ l", strokes: [{ name: "Nét khuyết trên biến thể", d: "M 300,270 L 300,120 Q 300,90 330,90 Q 350,100 350,130 L 350,250 Q 350,270 380,270" }] },
-    { id: "m", lower: "m", upper: "M", name: "Chữ m", strokes: [{ name: "Nét móc xuôi ngắn", d: "M 280,210 Q 280,180 300,180 L 300,270" }, { name: "Nét móc xuôi 2", d: "M 300,210 Q 300,180 330,180 L 330,270" }, { name: "Nét móc hai đầu", d: "M 330,210 Q 330,180 360,180 L 360,250 Q 360,270 380,270" }] },
-    { id: "n", lower: "n", upper: "N", name: "Chữ n", strokes: [{ name: "Nét móc xuôi", d: "M 300,210 Q 300,180 320,180 L 320,270" }, { name: "Nét móc hai đầu", d: "M 320,210 Q 320,180 350,180 L 350,250 Q 350,270 370,270" }] },
-    { id: "o", lower: "o", upper: "O", name: "Chữ o", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 40,45 0 1,0 350,270 A 40,45 0 1,0 350,180" }] },
-    { id: "oo", lower: "ô", upper: "Ô", name: "Chữ ô", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 40,45 0 1,0 350,270 A 40,45 0 1,0 350,180" }, { name: "Dấu mũ ô", d: "M 330,160 L 350,140 L 370,160" }] },
-    { id: "ow", lower: "ơ", upper: "Ơ", name: "Chữ ơ", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 40,45 0 1,0 350,270 A 40,45 0 1,0 350,180" }, { name: "Nét râu ơ", d: "M 385,185 Q 395,170 390,160" }] },
-    { id: "p", lower: "p", upper: "P", name: "Chữ p", strokes: [{ name: "Nét hất", d: "M 300,220 L 330,180" }, { name: "Nét thẳng đứng dài", d: "M 330,180 L 330,320" }, { name: "Nét móc hai đầu", d: "M 330,210 Q 330,180 360,180 L 360,250 Q 360,270 380,270" }] },
-    { id: "q", lower: "q", upper: "Q", name: "Chữ q", strokes: [{ name: "Nét cong kín", d: "M 350,180 A 30,30 0 1,0 350,240 A 30,30 0 1,0 350,180" }, { name: "Nét thẳng đứng dài", d: "M 380,180 L 380,320" }] },
-    { id: "r", lower: "r", upper: "R", name: "Chữ r", strokes: [{ name: "Nét thắt trên + Cong phải", d: "M 300,270 L 320,180 L 335,175 Q 350,180 350,200 L 350,250 Q 350,270 370,270" }] },
-    { id: "s", lower: "s", upper: "S", name: "Chữ s", strokes: [{ name: "Nét thắt trên + Cong trái", d: "M 300,270 L 330,175 Q 340,175 340,190 Q 340,270 300,270" }] },
-    { id: "t", lower: "t", upper: "T", name: "Chữ t", strokes: [{ name: "Nét hất", d: "M 300,220 L 330,170" }, { name: "Nét móc ngược", d: "M 330,140 L 330,250 Q 330,270 360,270" }, { name: "Nét gạch ngang", d: "M 310,180 L 350,180" }] },
-    { id: "u", lower: "u", upper: "U", name: "Chữ u", strokes: [{ name: "Nét hất", d: "M 290,220 L 320,180" }, { name: "Nét móc ngược rộng", d: "M 320,180 L 320,240 Q 320,270 350,270 L 350,180" }, { name: "Nét móc ngược 2", d: "M 350,180 L 350,250 Q 350,270 370,270" }] },
-    { id: "uw", lower: "ư", upper: "Ư", name: "Chữ ư", strokes: [{ name: "Thân chữ u", d: "M 290,220 L 320,180 L 320,240 Q 320,270 350,270 L 350,180 L 350,250 Q 350,270 370,270" }, { name: "Nét râu ư", d: "M 350,180 Q 360,170 358,160" }] },
-    { id: "v", lower: "v", upper: "V", name: "Chữ v", strokes: [{ name: "Nét móc hai đầu + Nét thắt", d: "M 290,190 Q 290,180 310,180 L 320,250 Q 340,270 350,240 Q 360,210 370,190" }] },
-    { id: "x", lower: "x", upper: "X", name: "Chữ x", strokes: [{ name: "Nét cong trái", d: "M 330,190 Q 300,220 330,260" }, { name: "Nét cong phải", d: "M 330,190 Q 360,220 330,260" }] },
-    { id: "y", lower: "y", upper: "Y", name: "Chữ y", strokes: [{ name: "Nét hất", d: "M 280,210 L 310,180" }, { name: "Nét móc hai đầu", d: "M 310,180 L 310,230 Q 310,260 340,260 L 340,180" }, { name: "Nét khuyết dưới", d: "M 340,180 L 340,300 Q 340,330 310,330 Q 290,330 290,300 L 370,200" }] }
+    { id: "a", name: "Chữ A", upper: "A", lower: "a", youtubeId: "qeVv7ApZr1I", description: "Gồm nét cong kín và nét móc ngược phải." },
+    { id: "aw", name: "Chữ Ă", upper: "Ă", lower: "ă", youtubeId: "1inzb8uiVio", description: "Chữ 'a' kết hợp với dấu nón ngửa (á) ở trên." },
+    { id: "aa", name: "Chữ Â", upper: "Â", lower: "â", youtubeId: "2hjEJp9L1rM", description: "Chữ 'a' kết hợp với dấu mũ (ô) úp ở trên." },
+    { id: "b", name: "Chữ B", upper: "B", lower: "b", youtubeId: "ZutfvPYwK40", description: "Gồm nét khuyết trên nối liền nét thắt trên." },
+    { id: "c", name: "Chữ C", upper: "C", lower: "c", youtubeId: "9Xekg3rU7sc", description: "Nét cong hở phải cao 2 ô li." },
+    { id: "d", name: "Chữ D", upper: "D", lower: "d", youtubeId: "dfbBiT2aAYs", description: "Gồm nét cong kín và nét móc ngược phải cao 4 ô li." },
+    { id: "dd", name: "Chữ Đ", upper: "Đ", lower: "đ", youtubeId: "LYJ_MVg5Ggs", description: "Chữ 'd' có thêm nét gạch ngang ngắn ở đường kẻ 3." },
+    { id: "e", name: "Chữ E", upper: "E", lower: "e", youtubeId: "IEdfR38gcjo", description: "Nét cong xiên lên rồi vòng sang trái tạo nét cong hở phải." },
+    { id: "ee", name: "Chữ Ê", upper: "Ê", lower: "ê", youtubeId: "OZ98t9hNipo", description: "Chữ 'e' thêm dấu mũ úp trên đầu." },
+    { id: "g", name: "Chữ G", upper: "G", lower: "g", youtubeId: "oTDP5kYTd6o", description: "Gồm nét cong kín và nét khuyết dưới cao 5 ô li." },
+    { id: "h", name: "Chữ H", upper: "H", lower: "h", youtubeId: "KM3cqrhKeSw", description: "Gồm nét khuyết trên và nét móc hai đầu." },
+    { id: "i", name: "Chữ I", upper: "I", lower: "i", youtubeId: "h7YOnn63EQU", description: "Gồm nét xiên ngắn, nét móc ngược và chấm nhỏ trên đầu." },
+    { id: "k", name: "Chữ K", upper: "K", lower: "k", youtubeId: "X3YNUW3q_7A", description: "Gồm nét khuyết trên và nét thắt giữa." },
+    { id: "l", name: "Chữ L", upper: "L", lower: "l", youtubeId: "xVstl9bH2_o", description: "Nét khuyết trên nối liền nét móc ngược cao 5 ô li." },
+    { id: "m", name: "Chữ M", upper: "M", lower: "m", youtubeId: "qeVv7ApZr1I", description: "Gồm 1 nét móc xuôi ngắn, 1 nét móc xuôi rộng và 1 nét móc hai đầu." },
+    { id: "n", name: "Chữ N", upper: "N", lower: "n", youtubeId: "1inzb8uiVio", description: "Gồm 1 nét móc xuôi ngắn và 1 nét móc hai đầu." },
+    { id: "o", name: "Chữ O", upper: "O", lower: "o", youtubeId: "2hjEJp9L1rM", description: "Nét cong khép kín cao 2 ô li." },
+    { id: "oo", name: "Chữ Ô", upper: "Ô", lower: "ô", youtubeId: "ZutfvPYwK40", description: "Chữ 'o' thêm dấu mũ úp trên đầu." },
+    { id: "ow", name: "Chữ Ơ", upper: "Ơ", lower: "ơ", youtubeId: "9Xekg3rU7sc", description: "Chữ 'o' thêm nét râu nhỏ bên phải." },
+    { id: "p", name: "Chữ P", upper: "P", lower: "p", youtubeId: "dfbBiT2aAYs", description: "Gồm nét xiên ngắn, nét sổ thẳng cao 4 ô li và nét móc hai đầu." },
+    { id: "q", name: "Chữ Q", upper: "Q", lower: "q", youtubeId: "LYJ_MVg5Ggs", description: "Gồm nét cong kín và nét sổ thẳng cao 4 ô li." },
+    { id: "r", name: "Chữ R", upper: "R", lower: "r", youtubeId: "IEdfR38gcjo", description: "Gồm nét xiên thắt ở đỉnh nối liền nét cong hở phải." },
+    { id: "s", name: "Chữ S", upper: "S", lower: "s", youtubeId: "OZ98t9hNipo", description: "Nét xiên thắt ở đỉnh lượn xoắn vào trong." },
+    { id: "t", name: "Chữ T", upper: "T", lower: "t", youtubeId: "oTDP5kYTd6o", description: "Gồm nét xiên ngắn, nét móc ngược cao 3 ô li và gạch ngang ngắn." },
+    { id: "u", name: "Chữ U", upper: "U", lower: "u", youtubeId: "KM3cqrhKeSw", description: "Gồm nét xiên ngắn, nét móc hai đầu rộng và nét móc ngược." },
+    { id: "uw", name: "Chữ Ư", upper: "Ư", lower: "ư", youtubeId: "h7YOnn63EQU", description: "Chữ 'u' thêm nét râu nhỏ bên phải." },
+    { id: "v", name: "Chữ V", upper: "V", lower: "v", youtubeId: "X3YNUW3q_7A", description: "Gồm nét móc hai đầu và nét thắt nhỏ ở đỉnh." },
+    { id: "x", name: "Chữ X", upper: "X", lower: "x", youtubeId: "xVstl9bH2_o", description: "Gồm nét cong hở phải và nét cong hở trái tựa lưng vào nhau." },
+    { id: "y", name: "Chữ Y", upper: "Y", lower: "y", youtubeId: "qeVv7ApZr1I", description: "Gồm nét xiên ngắn, nét móc hai đầu và nét khuyết dưới." }
 ];
 
-const DEFAULT_USERS = [
-    { id: "GV001", pass: "123456", role: "teacher", name: "Cô Giáo Thảo" },
-    { id: "HS001", pass: "123456", role: "student", name: "Nguyễn Văn An", class: "1A", stars: 45, progress: 65 },
-    { id: "HS002", pass: "123456", role: "student", name: "Trần Thị Bình", class: "1A", stars: 30, progress: 40 }
+// 2. DỮ LIỆU 14 NÉT CƠ BẢN
+const BASIC_STROKES_DATA = [
+    { id: "sothang", name: "Nét sổ thẳng", char: "|", youtubeId: "qeVv7ApZr1I", description: "Đặt bút trên đường kẻ ngang 3, kéo thẳng xuống đường kẻ 1." },
+    { id: "ngang", name: "Nét ngang", char: "—", youtubeId: "1inzb8uiVio", description: "Đặt bút trên đường kẻ 2, đưa bút từ trái sang phải." },
+    { id: "xientrai", name: "Nét xiên trái", char: "╱", youtubeId: "2hjEJp9L1rM", description: "Đặt bút ở đường kẻ 3, kéo chéo xuống góc trái đường kẻ 1." },
+    { id: "xienphai", name: "Nét xiên phải", char: "╲", youtubeId: "ZutfvPYwK40", description: "Đặt bút ở đường kẻ 3, kéo chéo xuống góc phải đường kẻ 1." },
+    { id: "mocxuoi", name: "Nét móc xuôi", char: "∩", youtubeId: "9Xekg3rU7sc", description: "Đặt bút giữa ô li 2 và 3, vòng cong lên đường kẻ 3 rồi kéo thẳng xuống." },
+    { id: "mocnguoc", name: "Nét móc ngược", char: "∪", youtubeId: "dfbBiT2aAYs", description: "Đặt bút ở đường kẻ 3, kéo thẳng xuống rồi lượn cong hất lên." },
+    { id: "moc2dau", name: "Nét móc hai đầu", char: "ʃ", youtubeId: "LYJ_MVg5Ggs", description: "Đặt bút ở đường kẻ 2, lượn cong lên đường kẻ 3 rồi kéo xuống móc hất lên." },
+    { id: "conghotrai", name: "Nét cong hở trái", char: "⊃", youtubeId: "IEdfR38gcjo", description: "Đặt bút dưới đường kẻ 3, lượn cong sang phải xuống đường kẻ 1." },
+    { id: "conghophai", name: "Nét cong hở phải", char: "⊂", youtubeId: "OZ98t9hNipo", description: "Đặt bút dưới đường kẻ 3, lượn cong sang trái xuống đường kẻ 1." },
+    { id: "congkin", name: "Nét cong khép kín", char: "O", youtubeId: "oTDP5kYTd6o", description: "Đặt bút dưới đường kẻ 3, viết nét cong khép kín tròn trịa." },
+    { id: "khuyettren", name: "Nét khuyết trên", char: "l", youtubeId: "KM3cqrhKeSw", description: "Đặt bút đường kẻ 2, kéo xiên lên đường kẻ 6 rồi vòng xuống đường kẻ 1." },
+    { id: "khuyetduoi", name: "Nét khuyết dưới", char: "g", youtubeId: "h7YOnn63EQU", description: "Kéo thẳng xuống dưới đường kẻ 1 (3 ô li), lượn cong hất xiên lên." },
+    { id: "thattren", name: "Nét thắt trên", char: "r", youtubeId: "X3YNUW3q_7A", description: "Đặt bút đường kẻ 1, đưa lên đường kẻ 3 xoắn một vòng nhỏ thắt lại." },
+    { id: "thatgiua", name: "Nét thắt giữa", char: "k", youtubeId: "xVstl9bH2_o", description: "Viết nét khuyết, đến đường kẻ 2 xoắn vòng thắt nhỏ rồi kéo ra." }
 ];
