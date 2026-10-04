@@ -100,22 +100,6 @@
     <!-- Tải tệp dữ liệu trước, sau đó nạp ứng dụng -->
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
-<!-- BỔ SUNG: MODAL CẤU HÌNH OPENAI API KEY -->
-<div id="openai-key-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-        <h3>🔑 Nhập OpenAI API Key</h3>
-        <p style="font-size: 13px; color: #666; margin: 10px 0;">API Key dùng để sinh bài tập tự động bằng AI. Key được lưu an toàn trong trình duyệt của bạn (localStorage).</p>
-        <div class="form-group">
-            <label>OpenAI API Key (sk-...):</label>
-            <input type="password" id="openai-key-input" placeholder="sk-proj-...">
-        </div>
-        <div class="modal-actions">
-            <button class="modal-btn cancel" onclick="closeApiKeyModal()">Hủy</button>
-            <button class="modal-btn save" onclick="saveApiKey()">Lưu Key</button>
-        </div>
-    </div>
-</div>
-
 <!-- STYLESHEET BỔ SUNG DÀNH RIÊNG CHO IN ẤN KHỔ A4 VỞ Ô LY -->
 <style media="print">
     @page {
