@@ -140,5 +140,336 @@
 
 <!-- KHUNG CHỨA NỘI DUNG IN ẨN TRÊN MÀN HÌNH CHÍNH -->
 <div id="print-area" class="hidden"></div>
+<!-- ========================================================================== -->
+<!-- BẮT ĐẦU: ĐOẠN MÃ CHATBOT AI GEMINI ĐỘC LẬP (KHÔNG ẢNH HƯỞNG CODE CŨ) -->
+<!-- ========================================================================== -->
+
+<!-- 1. GIAO DIỆN CHATBOT (HTML) -->
+<div class="gemini-chat-widget">
+    <!-- Nút tròn bật/tắt Chatbot ở góc dưới bên phải -->
+    <button id="gemini-chat-toggle-btn" class="gemini-chat-toggle-btn" title="Trợ lý AI Hỗ Trợ">
+        <span class="gemini-chat-icon-open">💬</span>
+        <span class="gemini-chat-icon-close gemini-chat-hidden">✖</span>
+    </button>
+
+    <!-- Cửa sổ Chatbot -->
+    <div id="gemini-chat-window" class="gemini-chat-window gemini-chat-hidden">
+        <div class="gemini-chat-header">
+            <div class="gemini-chat-title">
+                <span class="gemini-chat-status-dot"></span>
+                🤖 Trợ Lý AI Học Tập
+            </div>
+            <button id="gemini-chat-close-btn" class="gemini-chat-header-close">✖</button>
+        </div>
+
+        <div id="gemini-chat-messages" class="gemini-chat-messages">
+            <div class="gemini-chat-msg gemini-chat-msg-bot">
+                Xin chào bé và quý phụ huynh! Mình là Trợ lý AI. Bạn cần hỗ trợ gì về luyện viết chữ hay bài học hôm nay không? 😊
+            </div>
+        </div>
+
+        <div class="gemini-chat-input-area">
+            <input type="text" id="gemini-chat-input" placeholder="Hỏi AI về chữ cái, cách viết..." autocomplete="off">
+            <button id="gemini-chat-send-btn" class="gemini-chat-send-btn">🚀</button>
+        </div>
+    </div>
+</div>
+
+<!-- 2. STYLESHEET CÔ LẬP HOÀN TOÀN (CSS) -->
+<style>
+/* Tiền tố .gemini-chat-* đảm bảo không gây đè style cũ */
+.gemini-chat-widget {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 999999;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.gemini-chat-toggle-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF477E, #FF758C);
+    color: white;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(255, 71, 126, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.gemini-chat-toggle-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(255, 71, 126, 0.6);
+}
+
+.gemini-chat-window {
+    position: absolute;
+    bottom: 75px;
+    right: 0;
+    width: 350px;
+    height: 480px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #FFE5EC;
+    transition: all 0.3s ease;
+}
+
+.gemini-chat-header {
+    background: #FF477E;
+    color: white;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.gemini-chat-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gemini-chat-status-dot {
+    width: 9px;
+    height: 9px;
+    background-color: #22C55E;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.gemini-chat-header-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.gemini-chat-header-close:hover {
+    opacity: 1;
+}
+
+.gemini-chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: #FFF9FA;
+}
+
+.gemini-chat-msg {
+    max-width: 82%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.gemini-chat-msg-user {
+    align-self: flex-end;
+    background-color: #FF477E;
+    color: white;
+    border-bottom-right-radius: 2px;
+}
+
+.gemini-chat-msg-bot {
+    align-self: flex-start;
+    background-color: #FFFFFF;
+    color: #333333;
+    border: 1px solid #F1F5F9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    border-bottom-left-radius: 2px;
+}
+
+.gemini-chat-msg-loading {
+    align-self: flex-start;
+    font-style: italic;
+    color: #888;
+    background: #F1F5F9;
+}
+
+.gemini-chat-input-area {
+    padding: 12px;
+    background: #FFFFFF;
+    border-top: 1px solid #FFE5EC;
+    display: flex;
+    gap: 8px;
+}
+
+.gemini-chat-input-area input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #FFCDD2;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+}
+
+.gemini-chat-input-area input:focus {
+    border-color: #FF477E;
+}
+
+.gemini-chat-send-btn {
+    background: #FF477E;
+    color: white;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.gemini-chat-hidden {
+    display: none !important;
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 480px) {
+    .gemini-chat-window {
+        width: calc(100vw - 30px);
+        right: -10px;
+        bottom: 70px;
+        height: 420px;
+    }
+}
+</style>
+
+<!-- 3. LOGIC KẾT NỐI GEMINI API (JAVASCRIPT ĐỘC LẬP) -->
+<script>
+(function() {
+    // =========================================================================
+    // Điền API Key Gemini của bạn vào vị trí bên dưới
+    // =========================================================================
+    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; 
+    
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+    // Lấy các phần tử DOM Chatbot
+    const toggleBtn = document.getElementById("gemini-chat-toggle-btn");
+    const closeBtn = document.getElementById("gemini-chat-close-btn");
+    const chatWindow = document.getElementById("gemini-chat-window");
+    const iconOpen = toggleBtn.querySelector(".gemini-chat-icon-open");
+    const iconClose = toggleBtn.querySelector(".gemini-chat-icon-close");
+    const messagesContainer = document.getElementById("gemini-chat-messages");
+    const chatInput = document.getElementById("gemini-chat-input");
+    const sendBtn = document.getElementById("gemini-chat-send-btn");
+
+    // Lịch sử hội thoại gửi cho Gemini
+    let conversationHistory = [
+        {
+            role: "user",
+            parts: [{ text: "Bạn là một trợ lý AI thân thiện trên trang web luyện viết chữ tiếng Việt cho học sinh tiểu học. Hãy trả lời ngắn gọn, vui tươi, dễ hiểu và khuyến khích các bé tập viết nhé." }]
+        },
+        {
+            role: "model",
+            parts: [{ text: "Chào bạn! Mình đã hiểu rõ nhiệm vụ rồi. Mình sẵn sàng hỗ trợ các bé và quý phụ huynh tập viết chữ đẹp!" }]
+        }
+    ];
+
+    // Bật/Tắt cửa sổ Chat
+    function toggleChat() {
+        chatWindow.classList.toggle("gemini-chat-hidden");
+        iconOpen.classList.toggle("gemini-chat-hidden");
+        iconClose.classList.toggle("gemini-chat-hidden");
+        if (!chatWindow.classList.contains("gemini-chat-hidden")) {
+            chatInput.focus();
+        }
+    }
+
+    toggleBtn.addEventListener("click", toggleChat);
+    closeBtn.addEventListener("click", toggleChat);
+
+    // Thêm tin nhắn vào khung chat
+    function appendMessage(sender, text) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("gemini-chat-msg");
+        msgDiv.classList.add(sender === "user" ? "gemini-chat-msg-user" : "gemini-chat-msg-bot");
+        msgDiv.textContent = text;
+        messagesContainer.appendChild(msgDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        return msgDiv;
+    }
+
+    // Gửi câu hỏi sang Gemini API
+    async function sendMessage() {
+        const userText = chatInput.value.trim();
+        if (!userText) return;
+
+        if (GEMINI_API_KEY === "AQ.Ab8RN6K9tbTMbeQdqnjQfW10Ecooy1DrkD4nBw5PzcjGqmtWgA" || !GEMINI_API_KEY) {
+            appendMessage("bot", "⚠️ Chưa cấu hình API Key. Vui lòng dán GEMINI_API_KEY vào mã nguồn Javascript.");
+            return;
+        }
+
+        // Hiện câu hỏi người dùng
+        appendMessage("user", userText);
+        chatInput.value = "";
+
+        // Thêm câu hỏi vào lịch sử hội thoại
+        conversationHistory.push({
+            role: "user",
+            parts: [{ text: userText }]
+        });
+
+        // Hiện hiệu ứng chờ
+        const loadingDiv = appendMessage("bot", "Đang suy nghĩ...");
+        loadingDiv.classList.add("gemini-chat-msg-loading");
+
+        try {
+            const response = await fetch(GEMINI_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: conversationHistory })
+            });
+
+            const data = await response.json();
+            loadingDiv.remove();
+
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                const aiResponse = data.candidates[0].content.parts[0].text;
+                appendMessage("bot", aiResponse);
+
+                // Lưu phản hồi AI vào lịch sử hội thoại
+                conversationHistory.push({
+                    role: "model",
+                    parts: [{ text: aiResponse }]
+                });
+            } else {
+                appendMessage("bot", "Cảm ơn bạn! Đã có lỗi xảy ra hoặc không thể xử lý yêu cầu lúc này.");
+            }
+        } catch (error) {
+            loadingDiv.remove();
+            appendMessage("bot", "Không thể kết nối tới máy chủ AI. Vui lòng kiểm tra lại kết nối mạng!");
+            console.error("Gemini API Error:", error);
+        }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") sendMessage();
+    });
+})();
+</script>
+<!-- ========================================================================== -->
+<!-- KẾT THÚC: ĐOẠN MÃ CHATBOT AI GEMINI ĐỘC LẬP -->
+<!-- ========================================================================== -->
 </body>
 </html>
